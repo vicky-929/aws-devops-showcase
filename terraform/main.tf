@@ -19,3 +19,23 @@ module "network_secondary" {
   region_name        = var.secondary_region
   create_eks_subnets = var.regions["secondary"].create_eks
 }
+
+module "compute_primary" {
+  source            = "./modules/compute"
+  providers         = { aws = aws }
+  vpc_id            = module.network_primary.vpc_id
+  public_subnet_ids = module.network_primary.public_subnet_ids
+  environment       = var.environment
+  region_name       = var.primary_region
+  create_eks        = var.regions["primary"].create_eks
+}
+
+module "compute_secondary" {
+  source            = "./modules/compute"
+  providers         = { aws = aws.secondary }
+  vpc_id            = module.network_secondary.vpc_id
+  public_subnet_ids = module.network_secondary.public_subnet_ids
+  environment       = var.environment
+  region_name       = var.secondary_region
+  create_eks        = var.regions["secondary"].create_eks
+}
