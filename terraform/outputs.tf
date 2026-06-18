@@ -43,3 +43,19 @@ output "all_arns" {
 output "dynamodb_global_table_arn" {
   value = aws_dynamodb_table.global.arn
 }
+output "primary_vpc_id" { value = module.network_primary.vpc_id }
+output "secondary_vpc_id" { value = module.network_secondary.vpc_id }
+
+output "primary_eks_endpoint" { value = module.compute_primary.eks_cluster_endpoint }
+output "secondary_eks_endpoint" { value = module.compute_secondary.eks_cluster_endpoint }
+
+output "golden_ami_build_arn" {
+  value = aws_imagebuilder_image.golden_windows.arn
+}
+
+# Best-effort - if this errors once the build finishes, don't worry, the
+# AMI still built fine. Just delete this output block and use the AWS CLI
+# command below instead, which works regardless.
+output "golden_ami_ids" {
+  value = aws_imagebuilder_image.golden_windows.output_resources[0].amis
+}
