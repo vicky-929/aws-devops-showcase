@@ -1,0 +1,13 @@
+name: Org-Hardening-Baseline
+description: Applies the organization's baseline Windows hardening settings
+schemaVersion: 1.0
+phases:
+  - name: build
+    steps:
+      - name: ApplyHardening
+        action: ExecutePowerShell
+        inputs:
+          commands:
+            - Disable-WindowsOptionalFeature -Online -FeatureName SMB1Protocol -NoRestart
+            - Set-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\Lsa' -Name 'RestrictAnonymous' -Value 2
+            - Set-NetFirewallProfile -Profile Domain,Public,Private -Enabled True
