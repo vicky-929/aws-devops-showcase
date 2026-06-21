@@ -59,3 +59,7 @@ output "golden_ami_build_arn" {
 output "golden_ami_ids" {
   value = aws_imagebuilder_image.golden_windows.output_resources[0].amis
 }
+
+output "alb_dns_name" {
+  value = aws_lb.main.dns_name
+}
