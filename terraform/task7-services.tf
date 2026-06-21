@@ -103,6 +103,9 @@ resource "aws_ecs_service" "users" {
     container_name   = "users"
     container_port   = 80
   }
+  lifecycle {
+    ignore_changes = [task_definition, load_balancer]
+  }
 
   depends_on = [aws_lb_listener.http]
 
