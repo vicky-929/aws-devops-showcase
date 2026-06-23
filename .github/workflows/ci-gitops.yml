@@ -7,7 +7,7 @@ on:
 env:
   AWS_REGION: ap-south-1
   ECR_REPO: 700800570325.dkr.ecr.ap-south-1.amazonaws.com/dev-gitops-app
-  GITOPS_REPO: Jegan-Devops/aws-devops-gitops-manifests
+  GITOPS_REPO: vicky-929/aws-devops-gitops-manifests
 
 jobs:
   build-and-push:
