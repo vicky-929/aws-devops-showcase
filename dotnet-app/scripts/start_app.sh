@@ -3,17 +3,18 @@ set -e
 
 APP_DIR=/var/www/dotnet-app/app
 
-# Find the executable (self-contained publish creates binary named after project)
-APP_BIN=$(find $APP_DIR -maxdepth 1 -type f -executable ! -name "*.so" ! -name "*.dll" | head -1)
+# The binary is always named after the project — dotnet-app
+APP_BIN=$APP_DIR/dotnet-app
 
-if [ -z "$APP_BIN" ]; then
-  # Fallback: run via dotnet
-  APP_BIN="dotnet $APP_DIR/dotnet-app.dll"
+if [ ! -f "$APP_BIN" ]; then
+  echo "Binary not found at $APP_BIN, listing directory:"
+  ls -la $APP_DIR
+  exit 1
 fi
 
-echo "Starting app: $APP_BIN"
+chmod +x $APP_BIN
 
-# Create systemd service
+# Create systemd service with explicit binary path
 cat > /etc/systemd/system/dotnet-app.service << SERVICE
 [Unit]
 Description=.NET App Blue/Green Demo
@@ -35,3 +36,7 @@ SERVICE
 systemctl daemon-reload
 systemctl enable dotnet-app
 systemctl restart dotnet-app
+
+# Wait and verify it started
+sleep 5
+systemctl status dotnet-app
