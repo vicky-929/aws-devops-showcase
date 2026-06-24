@@ -10,7 +10,6 @@ env:
   GITOPS_REPO: vicky-929/aws-devops-gitops-manifests
   CODEDEPLOY_APP: dev-dotnet-app
   CODEDEPLOY_GROUP: dev-dotnet-app-dg
-  S3_BUCKET: ""   # filled dynamically below
 
 jobs:
   # ── Job 1: GitOps Docker build for EKS (Task 2) ───────────────────────────
@@ -36,14 +35,14 @@ jobs:
           docker push $ECR_REPO:latest
           echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
 
-      - name: Update image tag in GitOps repo
+      - name: Checkout GitOps repo
         uses: actions/checkout@v4
         with:
           repository: ${{ env.GITOPS_REPO }}
           token: ${{ secrets.GITOPS_PAT }}
           path: gitops-repo
 
-      - name: Commit new image tag
+      - name: Update image tag in GitOps repo
         run: |
           cd gitops-repo
           sed -i "s|tag:.*|tag: ${{ env.IMAGE_TAG }}|" apps/gitops-app/values.yaml
@@ -53,7 +52,7 @@ jobs:
           git commit -m "ci: update image tag to ${{ env.IMAGE_TAG }}" || echo "No changes"
           git push
 
-  # ── Job 2: Build .NET app + trigger CodeDeploy (Task 1) ───────────────────
+  # ── Job 2: Build .NET app + deploy via CodeDeploy (Task 1) ────────────────
   build-and-deploy-dotnet:
     runs-on: ubuntu-latest
     steps:
@@ -78,14 +77,20 @@ jobs:
 
       - name: Package artifact for CodeDeploy
         run: |
-          # Copy appspec and scripts into the publish folder
-          cp dotnet-app/appspec.yml dotnet-app/publish/
-          cp -r dotnet-app/scripts dotnet-app/publish/
-          # Zip everything up
-          cd dotnet-app/publish
-          zip -r ../../dotnet-app-${{ github.sha }}.zip .
+          mkdir -p codedeploy-package/app
+          # Copy published binary into app/ subfolder
+          cp -r dotnet-app/publish/* codedeploy-package/app/
+          # appspec.yml and scripts MUST be at root of zip
+          cp dotnet-app/appspec.yml codedeploy-package/
+          cp -r dotnet-app/scripts codedeploy-package/
+          # Zip with appspec.yml at root
+          cd codedeploy-package
+          zip -r ../dotnet-app-${{ github.sha }}.zip .
+          cd ..
+          # Verify appspec is at root of zip
+          unzip -l dotnet-app-${{ github.sha }}.zip | grep appspec
 
-      - name: Get S3 bucket name from AWS
+      - name: Get S3 bucket name
         run: |
           BUCKET=$(aws s3api list-buckets \
             --query "Buckets[?contains(Name,'codepipeline-artifacts')].Name" \
