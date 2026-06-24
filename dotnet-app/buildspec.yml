@@ -1,0 +1,30 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      dotnet: 8
+    commands:
+      - echo "Installing dependencies..."
+
+  build:
+    commands:
+      - echo "Building .NET app..."
+      - cd dotnet-app
+      - dotnet publish -c Release -r linux-x64 --self-contained true -o ./publish
+
+  post_build:
+    commands:
+      - echo "Packaging for CodeDeploy..."
+      - cp appspec.yml ./publish/
+      - cp -r scripts ./publish/
+      - mkdir -p ./publish/app
+      - cp -r ./publish/* ./publish/app/ 2>/dev/null || true
+
+artifacts:
+  files:
+    - dotnet-app/publish/appspec.yml
+    - dotnet-app/publish/scripts/**
+    - dotnet-app/publish/app/**
+  discard-paths: no
+# trigger pipeline Wed Jun 24 04:21:02 UTC 2026
