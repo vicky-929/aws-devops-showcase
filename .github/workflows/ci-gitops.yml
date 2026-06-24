@@ -72,8 +72,7 @@ jobs:
       - name: Build and publish .NET app
         run: |
           cd dotnet-app
-          dotnet publish -c Release -r linux-x64 \
-            --self-contained true -o ./publish
+          dotnet publish -c Release -o ./publish \
 
       - name: Package artifact for CodeDeploy
         run: |
