@@ -2,7 +2,9 @@ version: 0.0
 os: linux
 files:
   - source: /app
-    destination: /var/www/dotnet-app
+    destination: /var/www/dotnet-app/app
+  - source: /scripts
+    destination: /var/www/dotnet-app/scripts
 hooks:
   BeforeInstall:
     - location: scripts/before_install.sh
@@ -14,9 +16,9 @@ hooks:
       runas: root
   ApplicationStart:
     - location: scripts/start_app.sh
-      timeout: 60
+      timeout: 90
       runas: root
   ValidateService:
     - location: scripts/validate.sh
-      timeout: 60
+      timeout: 120
       runas: root
