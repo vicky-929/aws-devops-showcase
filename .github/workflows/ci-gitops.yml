@@ -104,6 +104,20 @@ jobs:
 
       - name: Trigger CodeDeploy deployment
         run: |
+          # Stop any active deployment first
+          ACTIVE=$(aws deploy list-deployments \
+            --application-name ${{ env.CODEDEPLOY_APP }} \
+            --deployment-group-name ${{ env.CODEDEPLOY_GROUP }} \
+            --include-only-statuses InProgress Created Ready \
+            --region ${{ env.AWS_REGION }} \
+            --query "deployments[0]" \
+            --output text)
+          if [ "$ACTIVE" != "None" ] && [ -n "$ACTIVE" ]; then
+            echo "Stopping active deployment: $ACTIVE"
+            aws deploy stop-deployment --deployment-id $ACTIVE \
+              --auto-rollback-enabled --region ${{ env.AWS_REGION }} || true
+            sleep 10
+          fi
           DEPLOYMENT_ID=$(aws deploy create-deployment \
             --application-name ${{ env.CODEDEPLOY_APP }} \
             --deployment-group-name ${{ env.CODEDEPLOY_GROUP }} \
